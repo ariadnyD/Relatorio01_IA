@@ -24,9 +24,9 @@ Este repositório contém a análise exploratória e o pré-processamento de dad
    - `04_classification_analysis.ipynb` (Percepções para Classificação)
 
 ## Principais Resultados
-- **Regressão:** A variável alvo escolhida foi `[nome_da_variavel]` (detalhes e justificativa no relatório técnico).
-- **Classificação:** A variável alvo escolhida foi `[nome_da_variavel]` (detalhes e justificativa no relatório técnico).
-- **Features mais relevantes:** `[feature_1]`, `[feature_2]`, `[feature_3]`.
+- **Regressão:** A variável alvo escolhida foi `Total_Amount` (detalhes e justificativa no relatório técnico).
+- **Classificação:** A variável alvo escolhida foi `Usou_Cupom` (detalhes e justificativa no relatório técnico).
+- **Features mais relevantes:** `Original_Price`, `Quantity`, `Pincode`.
 
 ## Contato
 - Email: ariadny.dantas.716@ufrn.edu.br
