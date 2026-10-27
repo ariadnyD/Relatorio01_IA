@@ -1,0 +1,3 @@
+Regra 1 (Heurística): SE Total_Amount > 200 E Total_Spent > 1000 ENTÃO 1
+Regra 2 (Relação): SE Customer_Age < 30 E Order_Value > 150 ENTÃO 1
+Regra 3 (Estratégia): SE Total_Amount <= 50 E Customer_Age >= 50 ENTÃO 0

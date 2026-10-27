@@ -1,0 +1,3 @@
+Regra 1 (Relação): SE Original_Price > 500 E Quantity >= 3 ENTÃO 1500
+Regra 2 (Heurística): SE Discount_Percent > 20 E Quantity == 1 ENTÃO 100
+Regra 3 (Diretriz): SE Original_Price <= 100 E Quantity == 2 ENTÃO 180
