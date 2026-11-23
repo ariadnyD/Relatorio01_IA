@@ -1,6 +1,7 @@
 import random
-from typing import Dict, Any, Tuple
-
+from typing import Dict, Any, Tuple, Callable, List, Optional
+import copy
+import time
 import numpy as np
 import pandas as pd
 import torch
@@ -165,3 +166,80 @@ def inverse_target(y_scaled: np.ndarray, target_scaler: StandardScaler) -> np.nd
     """Volta os valores previstos da regressão para a escala original."""
     arr = np.asarray(y_scaled).reshape(-1, 1)
     return target_scaler.inverse_transform(arr).ravel()
+
+
+def treinar_modelo(
+    modelo: torch.nn.Module,
+    dl_treino: DataLoader,
+    dl_val: DataLoader,
+    loss_fn: Callable,
+    otimizador: torch.optim.Optimizer,
+    device: torch.device,
+    n_epocas: int = 100,
+    paciencia: int = 15,
+    min_delta: float = 1e-6,
+) -> Dict[str, Any]:
+    """
+    Treina o modelo por época avaliando na validação e aplicando early stopping.
+    Restaura automaticamente o melhor state_dict observado na validação.
+    """
+    historico: Dict[str, List[float]] = {"treino": [], "val": []}
+    melhor_val = float("inf")
+    espera = 0
+    melhor_estado = copy.deepcopy(modelo.state_dict())
+    melhor_epoca = 0
+
+    inicio = time.perf_counter()
+
+    for epoca in range(1, n_epocas + 1):
+        modelo.train()
+        soma_treino = 0.0
+
+        for xb, yb in dl_treino:
+            xb = xb.to(device)
+            yb = yb.to(device)
+
+            otimizador.zero_grad()
+            pred = modelo(xb)
+            perda = loss_fn(pred, yb)
+            perda.backward()
+            otimizador.step()
+
+            soma_treino += perda.item() * len(xb)
+
+        perda_treino = soma_treino / len(dl_treino.dataset)
+        historico["treino"].append(perda_treino)
+
+        modelo.eval()
+        soma_val = 0.0
+        with torch.no_grad():
+            for xb, yb in dl_val:
+                xb = xb.to(device)
+                yb = yb.to(device)
+                pred = modelo(xb)
+                perda_val_batch = loss_fn(pred, yb)
+                soma_val += perda_val_batch.item() * len(xb)
+
+        perda_val = soma_val / len(dl_val.dataset)
+        historico["val"].append(perda_val)
+
+        if perda_val < melhor_val - min_delta:
+            melhor_val = perda_val
+            espera = 0
+            melhor_estado = copy.deepcopy(modelo.state_dict())
+            melhor_epoca = epoca
+        else:
+            espera += 1
+            if espera >= paciencia:
+                break
+
+    tempo_s = time.perf_counter() - inicio
+    modelo.load_state_dict(melhor_estado)
+
+    return {
+        "historico": historico,
+        "melhor_val": melhor_val,
+        "melhor_epoca": melhor_epoca,
+        "epocas_rodadas": len(historico["treino"]),
+        "tempo_s": tempo_s,
+    }
